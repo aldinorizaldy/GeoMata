@@ -1,5 +1,8 @@
 # GeoMata
 
+<img width="1331" height="704" alt="image" src="https://github.com/user-attachments/assets/fd5e99ab-1fd9-4208-8e33-341cbbdf5378" />
+
+
 GeoMata is a tool for analysing Earth observation data globally using remote sensing data.
 
 ## Overview
