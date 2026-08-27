@@ -12,8 +12,66 @@ from folium.plugins import Draw
 
 # --- PAGE CONFIG ---
 st.set_page_config(layout="wide", page_title="Local GeoAI Inference Platform")
-st.title("Local GeoAI Satellite Segmentation")
-st.caption("Draw a bounding box -> Stream Sentinel-2 -> Tile 1024x1024 -> SegFormer CPU Inference")
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    :root {
+        --ink: #e8edf0;
+        --muted: #89979b;
+        --panel: #11191c;
+        --panel-raised: #172226;
+        --line: rgba(182, 210, 210, 0.15);
+        --teal: #54d6c5;
+        --amber: #ffb86b;
+        --coral: #ff806d;
+    }
+
+    .stApp {
+        background:
+            radial-gradient(circle at 8% 0%, rgba(52, 119, 112, 0.20), transparent 31rem),
+            radial-gradient(circle at 95% 15%, rgba(166, 91, 59, 0.13), transparent 27rem),
+            #0b1012;
+        color: var(--ink);
+        font-family: 'Space Grotesk', 'Avenir Next', sans-serif;
+    }
+    .block-container { max-width: 1480px; padding: 3rem 4rem 4rem; }
+    h1, h2, h3, p, label { font-family: 'Space Grotesk', 'Avenir Next', sans-serif; }
+    h1 { letter-spacing: 0; font-weight: 700; }
+    [data-testid="stHeader"] { background: transparent; }
+    [data-testid="stToolbar"] { right: 1rem; }
+    .eyebrow {
+        color: var(--teal); font: 500 0.72rem 'DM Mono', monospace;
+        letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.7rem;
+    }
+    .hero-title { color: var(--ink); font-size: clamp(2.1rem, 4vw, 4.4rem); line-height: 0.98; margin: 0; }
+    .hero-title span { color: var(--teal); }
+    .hero-copy { color: var(--muted); margin: 1rem 0 2rem; max-width: 42rem; }
+    .status-line { display: flex; gap: 0.65rem; align-items: center; color: var(--muted); font: 400 0.72rem 'DM Mono', monospace; }
+    .status-dot { width: 0.5rem; height: 0.5rem; background: var(--teal); border-radius: 50%; box-shadow: 0 0 14px var(--teal); }
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background: rgba(17, 25, 28, 0.88); border: 1px solid var(--line); border-radius: 8px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.24);
+    }
+    [data-testid="stMarkdownContainer"] h3 { color: var(--ink); font-size: 1.05rem; }
+    .stButton > button {
+        border: 1px solid rgba(84, 214, 197, 0.45); border-radius: 5px; min-height: 3rem;
+        background: var(--teal); color: #071311; font-weight: 700; transition: all 160ms ease;
+    }
+    .stButton > button:hover { background: #86e8db; border-color: #86e8db; transform: translateY(-1px); }
+    [data-testid="stProgressBar"] > div > div { background: var(--teal); }
+    [data-testid="stAlert"] { border-radius: 5px; }
+    .mono { color: var(--amber); font: 400 0.78rem 'DM Mono', monospace; }
+    @media (max-width: 800px) { .block-container { padding: 2rem 1rem 3rem; } .hero-title { font-size: 2.6rem; } }
+    </style>
+    <div class="eyebrow">GEOSPATIAL INTELLIGENCE / LOCAL INFERENCE</div>
+    <h1 class="hero-title">Geo<span>Mata</span></h1>
+    <p class="hero-copy">Satellite imagery, sharpened into a living land-cover readout.</p>
+    <div class="status-line"><span class="status-dot"></span> PLANETARY COMPUTER CONNECTED &nbsp;·&nbsp; SEGFORMER / CPU READY</div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # --- MODEL LOADING (Cached so it loads only once) ---
 MODEL_NAME = "ratnaonline1/segFormer-b4-city-satellite-segmentation-1024x1024"
