@@ -21,3 +21,10 @@ GeoMata is under development. More details about installation, usage, supported 
 ## License
 
 License information will be added later.
+
+## Installation
+# Create the environment from the yml file
+conda env create -f environment.yml
+
+# Activate the new environment
+conda activate geomata

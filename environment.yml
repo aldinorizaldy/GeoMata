@@ -1,0 +1,23 @@
+name: geomata
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - gdal
+  - geopandas
+  - rasterio
+  - setuptools
+  - pip
+  - pip:
+      - streamlit==1.32.0
+      - leafmap==0.31.1
+      - streamlit-folium==0.18.0
+      - torch
+      - torchvision
+      - transformers
+      - pystac-client
+      - planetary-computer
+      - stackstac
+      - pillow
+      - numpy
