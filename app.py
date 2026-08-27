@@ -18,8 +18,8 @@ st.markdown(
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
     :root {
-        --ink: #e8edf0;
-        --muted: #89979b;
+        --ink: #f2f7f7;
+        --muted: #c1d1d2;
         --panel: #11191c;
         --panel-raised: #172226;
         --line: rgba(182, 210, 210, 0.15);
@@ -38,6 +38,8 @@ st.markdown(
     }
     .block-container { max-width: 1480px; padding: 3rem 4rem 4rem; }
     h1, h2, h3, p, label { font-family: 'Space Grotesk', 'Avenir Next', sans-serif; }
+    .stMarkdown, [data-testid="stCaptionContainer"], [data-testid="stWidgetLabel"] { color: var(--ink); }
+    [data-testid="stCaptionContainer"] { color: var(--muted); }
     h1 { letter-spacing: 0; font-weight: 700; }
     [data-testid="stHeader"] { background: transparent; }
     [data-testid="stToolbar"] { right: 1rem; }
