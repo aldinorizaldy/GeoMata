@@ -185,7 +185,8 @@ col1, col2 = st.columns([2, 1])
 
 with col1:
     st.subheader("1. Select Area of Interest (AOI)")
-    m = leafmap.Map(center=[37.7749, -122.4194], zoom=12) # Default San Francisco
+    # m = leafmap.Map(center=[37.7749, -122.4194], zoom=12) # Default San Francisco
+    m = leafmap.Map(center=[-6.2146, 106.8451], zoom=12) # Default Cibinong
     Draw(export=False).add_to(m)
     map_data = m.to_streamlit(height=500, bidirectional=True)
 
