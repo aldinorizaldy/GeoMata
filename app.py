@@ -1,3 +1,4 @@
+import datetime
 import streamlit as st
 import leafmap.foliumap as leafmap
 import numpy as np
@@ -75,6 +76,90 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# ==========================================
+# SIDEBAR DATE CONTROLS
+# ==========================================
+st.sidebar.header("Date Controls")
+
+# Year selection dropdown (Sentinel-2 reliable coverage: 2017 to current year 2026)
+selected_year = st.sidebar.selectbox("Select Year", list(range(2017, 2027)), index=7) # Default: 2024
+
+# Date Slider across the selected year
+start_of_year = datetime.date(selected_year, 1, 1)
+end_of_year = datetime.date(selected_year, 12, 31)
+
+selected_date = st.sidebar.slider(
+    "Select Approximate Date",
+    min_value=start_of_year,
+    max_value=end_of_year,
+    value=datetime.date(selected_year, 6, 15), # Default mid-year
+    format="YYYY-MM-DD"
+)
+
+st.sidebar.info(f"Target Date: **{selected_date.strftime('%B %d, %Y')}**")
+
+# ... [Keep your MODEL_NAME, load_segformer_model, run_tile_inference, process_and_tile_image unchanged] ...
+
+# ==========================================
+# REPLACE OLD fetch_sentinel_rgb WITH THIS:
+# ==========================================
+def fetch_sentinel_by_date(bbox, target_date, window_days=20):
+    """
+    Searches Sentinel-2 scenes within target_date ± window_days
+    and returns the item closest to target_date with low cloud cover.
+    """
+    start_date = target_date - datetime.timedelta(days=window_days)
+    end_date = target_date + datetime.timedelta(days=window_days)
+    date_str = f"{start_date.strftime('%Y-%m-%d')}/{end_date.strftime('%Y-%m-%d')}"
+    
+    catalog = Client.open("https://planetarycomputer.microsoft.com/api/stac/v1")
+    search = catalog.search(
+        collections=["sentinel-2-l2a"],
+        bbox=bbox,
+        datetime=date_str,
+        query={"eo:cloud_cover": {"lt": 25}} # Up to 25% clouds in window
+    )
+    items = search.item_collection()
+    if len(items) == 0:
+        return None, None
+        
+    # Sort closest to user's selected date
+    def date_distance(item):
+        item_date = item.datetime.date()
+        return abs((item_date - target_date).days)
+    
+    sorted_items = sorted(items, key=lambda x: (date_distance(x), x.properties["eo:cloud_cover"]))
+    best_item = planetary_computer.sign(sorted_items[0])
+    
+    actual_date_str = best_item.datetime.strftime('%Y-%m-%d')
+    cloud_cover = best_item.properties['eo:cloud_cover']
+    
+    stack = stackstac.stack(
+        best_item,
+        assets=["B04", "B03", "B02"],
+        bounds_latlon=bbox,
+        epsg=4326,
+    )
+    
+    data = stack.compute().values
+    if data.ndim == 4:
+        data = data[0]
+    rgb = np.moveaxis(data, 0, -1)
+    rgb = np.nan_to_num(rgb, nan=0.0)
+    
+    # Percentile contrast stretch per band
+    rgb_scaled = np.zeros_like(rgb, dtype=np.uint8)
+    for i in range(3):
+        band = rgb[:, :, i]
+        valid = band[band > 0]
+        if len(valid) > 0:
+            p2, p98 = np.percentile(valid, (2, 98))
+            band_stretched = np.clip((band - p2) / (p98 - p2 + 1e-5) * 255.0, 0, 255)
+            rgb_scaled[:, :, i] = band_stretched.astype(np.uint8)
+            
+    meta_info = {"date": actual_date_str, "cloud_cover": cloud_cover}
+    return rgb_scaled, meta_info
+
 # --- MODEL LOADING (Cached so it loads only once) ---
 MODEL_NAME = "ratnaonline1/segFormer-b4-city-satellite-segmentation-1024x1024"
 
@@ -90,6 +175,26 @@ def load_segformer_model():
 processor, model = load_segformer_model()
 
 # --- INFERENCE ENGINE ---
+def colorize_mask(mask: np.ndarray) -> np.ndarray:
+    """Converts a 2D integer class mask into a 3D colorized RGB mask."""
+    # Defined color lookup table for distinct class visualization
+    COLOR_PALETTE = np.array([
+        [0, 0, 0],         # Class 0: Background (Black)
+        [230, 25, 75],     # Class 1: Red
+        [60, 180, 75],     # Class 2: Green
+        [255, 225, 25],    # Class 3: Yellow
+        [0, 130, 200],     # Class 4: Blue
+        [245, 130, 48],    # Class 5: Orange
+        [145, 30, 180],    # Class 6: Purple
+        [70, 240, 240],    # Class 7: Cyan
+        [240, 50, 230],    # Class 8: Magenta
+        [210, 245, 60]     # Class 9: Lime
+    ], dtype=np.uint8)
+    
+    max_index = COLOR_PALETTE.shape[0] - 1
+    safe_mask = np.clip(mask, 0, max_index)
+    return COLOR_PALETTE[safe_mask]
+
 def run_tile_inference(tile_rgb: np.ndarray) -> np.ndarray:
     """Passes a single (1024, 1024, 3) uint8 tile through SegFormer CPU."""
     pil_img = Image.fromarray(tile_rgb)
@@ -194,30 +299,35 @@ with col2:
     st.subheader("2. Run Pipeline")
     if map_data and map_data.get("last_active_drawing"):
         bbox = map_data["last_active_drawing"]["geometry"]["coordinates"][0]
-        # Calculate bounding box [min_lon, min_lat, max_lon, max_lat]
         lons = [pt[0] for pt in bbox]
         lats = [pt[1] for pt in bbox]
         min_lon, max_lon = min(lons), max(lons)
         min_lat, max_lat = min(lats), max(lats)
         st.write(f"**Bounding Box:** `[{min_lon:.4f}, {min_lat:.4f}, {max_lon:.4f}, {max_lat:.4f}]`")
         
+        # Display selected date info
+        st.write(f"**Target Date:** `{selected_date.strftime('%Y-%m-%d')}`")
+        
         if st.button("Fetch & Process Area", type="primary"):
-            with st.spinner("Fetching Sentinel-2 bands via STAC..."):
-                rgb_data = fetch_sentinel_rgb([min_lon, min_lat, max_lon, max_lat])
+            with st.spinner(f"Searching Sentinel-2 imagery around {selected_date}..."):
+                rgb_data, meta = fetch_sentinel_by_date(
+                    [min_lon, min_lat, max_lon, max_lat],
+                    target_date=selected_date
+                )
                 
             if rgb_data is None:
-                st.error("No low-cloud Sentinel-2 imagery found for this region/date range.")
+                st.error(f"No Sentinel-2 imagery (<25% clouds) found within ±20 days of {selected_date}.")
             else:
-                st.success(f"Fetched Satellite Image Array Shape: {rgb_data.shape}")
+                # Show metadata feedback
+                st.success(f"Acquired Scene Date: **{meta['date']}** | Clouds: **{meta['cloud_cover']:.1f}%**")
                 
                 with st.spinner("Running SegFormer CPU Inference..."):
                     prediction_mask = process_and_tile_image(rgb_data, tile_size=1024)
                     
                 st.success("Inference Complete!")
                 
-                # Show results side-by-side
                 res_col1, res_col2 = st.columns(2)
-                res_col1.image(rgb_data, caption="Sentinel-2 RGB", use_column_width=True)
+                res_col1.image(rgb_data, caption=f"Sentinel-2 RGB ({meta['date']})", use_column_width=True)
                 res_col2.image(prediction_mask * 40, caption="Segmentation Mask Output", use_column_width=True)
     else:
         st.info("Draw a rectangle or polygon on the map to select an area.")
