@@ -1,6 +1,6 @@
 # GeoMata
 
-<img width="1331" height="704" alt="image" src="https://github.com/user-attachments/assets/fd5e99ab-1fd9-4208-8e33-341cbbdf5378" />
+<img width="1386" height="741" alt="image" src="https://github.com/user-attachments/assets/b32092ae-b603-47c6-aad0-086ce1920678" />
 
 GeoMata is a local geospatial AI workspace for turning Sentinel-2 satellite imagery into land-cover predictions. Select an area on an interactive map, stream cloud-filtered imagery from Microsoft Planetary Computer, and run a SegFormer semantic-segmentation model locally on the CPU.
 
