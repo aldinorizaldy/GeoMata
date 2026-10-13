@@ -11,7 +11,7 @@ GeoMata is a local geospatial AI workspace for turning Sentinel-2 satellite imag
 - Searches Sentinel-2 L2A imagery from 2024 with less than 10% cloud cover
 - Downloads RGB bands B04, B03, and B02 through signed Planetary Computer URLs
 - Tiles imagery into 1024 x 1024 patches and predicts a land-cover mask
-- Shows the source image and segmentation output in a dark Streamlit interface
+- Shows the source image, segmentation output, and ESA WorldCover reference map in a dark Streamlit interface
 
 ## Requirements
 
