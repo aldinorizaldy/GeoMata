@@ -11,4 +11,4 @@ Per-plot oil palm intelligence for Indonesia on Google Earth Engine. Prototype a
 - Earth Engine calls can't run in CI (they need sign-in). `pytest` covers pure-Python code and
   notebook syntax only; anything EE-side must be checked by running the notebook.
 - Free tiers only while prototyping.
-- `legacy/streamlit-demo/` is the old app, kept for reference (tag `v0-demo`). Don't build on it.
+- `legacy/streamlit-demo/` is the old app, kept for reference (branch `v0-demo`). Don't build on it.
