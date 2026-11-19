@@ -11,8 +11,8 @@ The first prototype covers **Siak district, Riau**, starting with one 20 x 20 km
 
 | Notebook | What it does | |
 |---|---|---|
-| 01 Palm mask | Industrial vs smallholder palm, hectares, EUDR flags | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/aldinorizaldy/geomata/blob/palm-passport-step2/notebooks/01_palm_mask.ipynb) |
-| 02 Planting year | Clearing/planting year, palm age, age class, replanting, Hansen self-check | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/aldinorizaldy/geomata/blob/palm-passport-step2/notebooks/02_planting_year.ipynb) |
+| 01 Palm mask | Industrial vs smallholder palm, hectares, EUDR flags | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/aldinorizaldy/geomata/blob/main/notebooks/01_palm_mask.ipynb) |
+| 02 Planting year | Clearing/planting year, palm age, age class, replanting, Hansen self-check | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/aldinorizaldy/geomata/blob/main/notebooks/02_planting_year.ipynb) |
 
 1. One time: register a Google Cloud project for Earth Engine at
    https://code.earthengine.google.com/register and copy its project ID.
@@ -41,7 +41,7 @@ Full spec: [docs/spec.md](docs/spec.md).
 notebooks/            Colab notebooks (01 palm mask, 02 planting year)
 src/palm_passport/    Earth Engine code the notebooks import
 tests/                pytest (pure-Python parts and notebook syntax)
-legacy/streamlit-demo The earlier Sentinel-2 + WorldCover Streamlit app (also tagged v0-demo)
+legacy/streamlit-demo The earlier Sentinel-2 + WorldCover Streamlit app (also on the v0-demo branch)
 ```
 
 ## Develop locally
