@@ -1,71 +1,52 @@
-# GeoMata
+# GeoMata: Palm Passport
 
-<img width="1386" height="741" alt="image" src="https://github.com/user-attachments/assets/b32092ae-b603-47c6-aad0-086ce1920678" />
+Per-plot intelligence for Indonesian oil palm smallholders, from free satellite data on
+Google Earth Engine. For each palm plot: where it is, when it was planted (from 40 years of
+Landsat), how old it is, whether it is due for replanting, and a first deforestation-free
+(EUDR, cut-off 31 Dec 2020) check.
 
-GeoMata is a local geospatial AI workspace for turning Sentinel-2 satellite imagery into land-cover predictions. Select an area on an interactive map, stream cloud-filtered imagery from Microsoft Planetary Computer, and run a SegFormer semantic-segmentation model locally on the CPU.
+The first prototype covers **Siak district, Riau**, starting with one 20 x 20 km box.
 
-## What it does
+## Run it in Google Colab (no laptop needed)
 
-- Displays an interactive map centered on San Francisco
-- Lets you draw a rectangle or polygon for an area of interest
-- Searches Sentinel-2 L2A imagery from 2024 with less than 10% cloud cover
-- Downloads RGB bands B04, B03, and B02 through signed Planetary Computer URLs
-- Tiles imagery into 1024 x 1024 patches and predicts a land-cover mask
-- Shows the source image, segmentation output, and ESA WorldCover reference map in a dark Streamlit interface
+| Notebook | What it does | |
+|---|---|---|
+| 01 Palm mask | Industrial vs smallholder palm, hectares, EUDR flags | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/aldinorizaldy/geomata/blob/palm-passport-step2/notebooks/01_palm_mask.ipynb) |
+| 02 Planting year | Clearing/planting year, palm age, age class, replanting, Hansen self-check | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/aldinorizaldy/geomata/blob/palm-passport-step2/notebooks/02_planting_year.ipynb) |
 
-## Requirements
+1. One time: register a Google Cloud project for Earth Engine at
+   https://code.earthengine.google.com/register and copy its project ID.
+2. Open a notebook, paste the ID into `PROJECT_ID` in the first cell, then **Runtime > Run all**.
+3. Sign in to Google when Colab asks.
 
-- macOS, Linux, or Windows
-- Conda or Miniforge
-- Python 3.10 (provided by `environment.yml`)
-- Internet access for the Planetary Computer catalog, satellite assets, and the Hugging Face model
+Earth Engine is free for noncommercial and research use. Once Palm Passport is sold to
+customers, Earth Engine needs a commercial licence; Google offers trials for that.
 
-## Local installation
+## Method (short)
 
-Run these commands from the project directory:
+- **Palm mask:** Descals et al. global oil palm map 2019 (`BIOPAMA/GlobalOilPalm/v1`, 10 m).
+- **Planting year:** yearly median Landsat 5/7/8/9 Collection 2 composites, TM/ETM+ harmonised
+  to OLI (Roy et al. 2016), NBR series, LandTrendr. The biggest abrupt NBR drop is the land
+  clearing; planting year = clearing year + 1. Two big drops = replanted.
+- **Age classes:** 0-3, 4-8, 9-25, over 25 years (due for replanting).
+- **EUDR first pass:** palm on JRC GFC2020 forest, or Hansen tree-cover loss after 2020.
+- **Checks:** Hansen loss-year agreement now; Descals et al. 2024 planting-year map as the
+  benchmark once uploaded.
+
+Full spec: [docs/spec.md](docs/spec.md).
+
+## Repository layout
+
+```
+notebooks/            Colab notebooks (01 palm mask, 02 planting year)
+src/palm_passport/    Earth Engine code the notebooks import
+tests/                pytest (pure-Python parts and notebook syntax)
+legacy/streamlit-demo The earlier Sentinel-2 + WorldCover Streamlit app (also tagged v0-demo)
+```
+
+## Develop locally
 
 ```bash
-conda env create -f environment.yml
-conda activate geomata
+pip install -e ".[notebooks,dev]"
+pytest
 ```
-
-`leafmap==0.31.1` still imports `pkg_resources`, so pin Setuptools to a compatible release:
-
-```bash
-python -m pip install "setuptools<81"
-```
-
-On an Intel Mac, PyTorch may resolve to version 2.2.x because newer wheels are unavailable for macOS x86_64. That is acceptable for this project because the model is loaded with `use_safetensors=True` and runs on the CPU.
-
-Verify the environment:
-
-```bash
-python -c "import torch, torchvision, planetary_computer, leafmap; print('GeoMata environment is ready')"
-```
-
-## Run the app
-
-Start Streamlit from the same activated environment:
-
-```bash
-streamlit run app.py
-```
-
-Open the local URL printed by Streamlit, usually:
-
-```text
-http://localhost:8501
-```
-
-Draw an area on the map, then select **Fetch & Process Area**. The first run downloads and caches the SegFormer model, so startup and inference can take a little time on CPU.
-
-## Troubleshooting
-
-- `No module named pkg_resources`: run `python -m pip install "setuptools<81"`.
-- `HTTP response code: 409`: install `planetary-computer` and make sure `app.py` signs the STAC item before stacking assets.
-- `Cannot pick a common CRS`: keep `epsg=4326` in the `stackstac.stack` call.
-- PyTorch `2.5` or newer is unavailable on Intel macOS: use the Conda environment's compatible PyTorch version rather than forcing an unsupported wheel.
-
-## License
-
-License information will be added later.
